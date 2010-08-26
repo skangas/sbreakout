@@ -4,6 +4,8 @@
 
 #include "level_loader.hpp"
 
+level_loader::level_loader() { }
+
 level_loader::level_loader(int width, int height)
   : width(width),
     height(height)

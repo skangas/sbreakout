@@ -9,6 +9,7 @@
 class level_loader
 {
 public:
+  level_loader();
   level_loader(int width, int height);
   ~level_loader();
 

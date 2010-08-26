@@ -1,3 +1,4 @@
+#include "assert.h"
 #include <iostream>
 #include <string>
 
@@ -5,8 +6,7 @@
 
 game::game()
   : running(false),
-    frame(0),
-    loader(SCREEN_WIDTH, SCREEN_HEIGHT)
+    frame(0)
 {
 }
 
@@ -17,6 +17,8 @@ game::~game()
 void
 game::run()
 {
+  assert(screen != NULL);
+
   // Prepare background
   SDL_Surface *background = NULL;
   background = load_image("background.jpg");
@@ -24,34 +26,50 @@ game::run()
   // Prepare text
   TTF_Font* font = TTF_OpenFont("fonts/ProggyCleanSZBP.ttf", 16);
   SDL_Color text_color = { 255, 0, 0 };
-  status = TTF_RenderText_Solid(font, "The quick brown fox jumps over the lazy dog", text_color);
+  status = TTF_RenderText_Solid(font, "---", text_color);
   board.set_level(loader.load_level("level001.txt"));
+
+  int start = SDL_GetTicks();
 
   running = true;
   while (running)
     {
       int frame_start = SDL_GetTicks();
+      frame++;
 
+      // Clear surfaces
       SDL_FillRect(screen, NULL, 0);
+      SDL_FillRect(game_area, NULL, 0);
 
-      SDL_BlitSurface(background, NULL, screen, NULL);
-
-      handle_events();
-
+      // Update and blit the game area
       board.update();
       board.blit();
 
-      SDL_BlitSurface(status, NULL, screen, NULL);
+      // Blit surfaces
+      SDL_BlitSurface(background, NULL, screen, NULL);
+      SDL_Rect target = { SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.05 };
+      SDL_BlitSurface(game_area, NULL, screen, &target);
 
-      SDL_Flip(screen);
+      handle_events();
+
+
+      // SDL_BlitSurface(status, NULL, screen, NULL);
 
       // Limit the frame rate to FRAME_PER_SECOND
       int frame_ticks = SDL_GetTicks() - frame_start;
       if (frame_ticks < 1000 / FRAMES_PER_SECOND)
         SDL_Delay((1000/FRAMES_PER_SECOND) - frame_ticks);
 
-      frame++;
-      std::cout << frame << std::endl;
+      // Show FPS counter
+      SDL_Surface* fps_surface;
+      char buffer[256];
+      int fps = frame / float((frame_start - start) / 1000.0);
+      sprintf(buffer, "%d FPS", fps);
+      fps_surface = TTF_RenderText_Solid(font, buffer, text_color);
+      SDL_Rect loc = { SCREEN_WIDTH - 50, 5, 100, 100 };
+      SDL_BlitSurface(fps_surface, NULL, screen, &loc);
+
+      SDL_Flip(screen);
     }
 }
 
@@ -65,10 +83,16 @@ game::init()
   if (screen == NULL)
     return false;
 
+  // Create game area
+  game_area = SDL_CreateRGBSurface(SDL_SWSURFACE, SCREEN_WIDTH * 0.8, SCREEN_HEIGHT * 0.9,
+                                   SCREEN_BPP, 0, 0, 0, 0);
+
+  board.set_surface(game_area);
+  loader = level_loader(game_area->w, game_area->h);
+
+  // Initialize sdl-ttf
   if (TTF_Init() == -1)
     return false;
-
-  board.set_surface(screen);
 
   // Hide mouse cursor
   SDL_ShowCursor(SDL_DISABLE); 
@@ -95,10 +119,20 @@ game::handle_events()
 
   while (SDL_PollEvent(&event))
     {
-      if (event.type == SDL_MOUSEMOTION)
+      switch (event.type)
+        {
+        case SDL_MOUSEMOTION:
           board.set_paddle(event.motion.x);
-      
-      if (event.type == SDL_QUIT)
-        running = false;
+          break;
+        case SDL_KEYDOWN:
+          if (event.key.keysym.sym == SDLK_ESCAPE)
+            running = false;
+          break;
+        case SDL_QUIT:
+          running = false;
+          break;
+        default:
+          break;
+        }
     }      
 }

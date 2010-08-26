@@ -45,7 +45,8 @@ private:
   vector<game_ball> balls;
   vector<game_brick> bricks;
 
-  int paddle_location;
+  int paddle_x;
+  int paddle_y;
   SDL_Surface* surface;
 
   // SDL_Pictures
@@ -59,7 +60,6 @@ private:
   static const int BRICK_WIDTH = 48;
   static const int BRICK_HEIGHT = 16;
   static const int BALL_RADIUS = BALL_WIDTH / 2;
-  static const int PADDLE_Y_POS = 768 - 40;
   static const int PADDLE_WIDTH = 65;
 };
 

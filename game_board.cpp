@@ -8,7 +8,8 @@
 
 game_board::game_board()
   : last_update(0),
-    paddle_location(0)
+    paddle_x(0),
+    paddle_y(0)
 {
   surface = NULL;
 
@@ -88,8 +89,8 @@ void
 game_board::blit_paddle()
 {
   SDL_Rect pos;
-  pos.x = paddle_location;
-  pos.y = PADDLE_Y_POS;
+  pos.x = paddle_x;
+  pos.y = paddle_y;
   pos.w = 100;
   pos.h = 100;
 
@@ -120,40 +121,23 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
 
       int x_collision, y_collision;
   
-      // Used to remember the pixel distance from the collision pixel in
-      // different direction.
-      int above, right_of, below, left_of;
-      above = right_of = below = left_of = 0;
-
       // Find colliding x coordinate
       
       // NOTE: We use the _new_ X/Y to decide collision, but the _old_ X to
       // decide which direction the ball was coming from.  This is to avoid
       // using the inside of the brick to decide on direction.
       if (new_x < left)
-        {
-          left_of = left - ball.x;
           x_collision = left;
-        }
       else if (new_x > right)
-        {
-          right_of = ball.x - right;
           x_collision = right;
-        }
       else
         x_collision = new_x;
 
       // Find colliding y coordinate
       if (new_y < top)
-        {
-          above = top - ball.y;
           y_collision = top;
-        }
       else if (new_y > bottom)
-        {
-          below = ball.y - bottom;
           y_collision = bottom;
-        }
       else
         y_collision = new_y;
 
@@ -178,9 +162,15 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
       // Bounce the ball depending on its position.  Here we need to decide
       // which border it makes the most sense to bounce against.  We want to
       // bounce the ball against the border closest to the collision.
+
+      int above = top - ball.y;
+      int below = ball.y - bottom;
+      int left_of = left - ball.x;
+      int right_of = ball.x - right;
+
       ball_hit = INSIDE;
 
-      if (left_of)
+      if (left_of > 0)
         {
           if (left_of > below && left_of > above)
             {
@@ -188,7 +178,7 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
               above = below = 0;
             }
         }
-      else if (right_of)
+      else if (right_of > 0)
         {
           if (right_of > below && right_of > above)
             {
@@ -197,9 +187,9 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
             }
         }
 
-      if (above)
+      if (above > 0)
         ball_hit = BOTTOM;
-      else if (below)
+      else if (below > 0)
         ball_hit = TOP;
     }
 
@@ -224,15 +214,15 @@ void
 game_board::handle_paddle_collision(game_ball& ball, int new_x, int new_y)
 {
   // Ball is too far from paddle
-  if (ball.y + BALL_RADIUS < PADDLE_Y_POS)
+  if (ball.y + BALL_RADIUS < paddle_y)
     return;
   // Ball center has passed paddle, so it can not be bounced.
-  if (ball.y > PADDLE_Y_POS)
+  if (ball.y > paddle_y)
     return;
 
   // Find colliding x coordinate
-  int left  = paddle_location;
-  int right = paddle_location + PADDLE_WIDTH;
+  int left  = paddle_x;
+  int right = paddle_x + PADDLE_WIDTH;
 
   int collide_x;
 
@@ -244,11 +234,11 @@ game_board::handle_paddle_collision(game_ball& ball, int new_x, int new_y)
     collide_x = ball.x;
 
   // See if ball is close enough to bounce
-  if (distance(ball.x, ball.y, collide_x, PADDLE_Y_POS) > BALL_RADIUS)
+  if (distance(ball.x, ball.y, collide_x, paddle_y) > BALL_RADIUS)
     return;
 
   // Ok, ball should be bounced.  Determine and set new direction.
-  float hit_paddle = float(collide_x - paddle_location) / PADDLE_WIDTH;
+  float hit_paddle = float(collide_x - paddle_x) / PADDLE_WIDTH;
   float angle      = PI + 0.2 + (PI - 0.4) * hit_paddle;
 
    LOG("angle %f hit_paddle %f", angle, hit_paddle);
@@ -281,15 +271,16 @@ void
 game_board::set_paddle(int x)
 {
   if (x < surface->w - PADDLE_WIDTH)
-    paddle_location = x;
+    paddle_x = x;
   else
-    paddle_location = surface->w - PADDLE_WIDTH;
+    paddle_x = surface->w - PADDLE_WIDTH;
 }
 
 void
 game_board::set_surface(SDL_Surface* surface)
 {
   this->surface = surface;
+  paddle_y = surface->h * 0.95;
 }
 
 void

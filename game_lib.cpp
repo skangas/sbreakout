@@ -29,18 +29,16 @@ SDL_Surface *load_image(std::string filename)
   SDL_Surface* loaded = NULL;
   SDL_Surface* optimized = NULL;
 
-  loaded = IMG_Load( filename.c_str() );
+  loaded = IMG_Load(filename.c_str());
 
-  if( loaded != NULL )
-    {
-      optimized = SDL_DisplayFormat(loaded);
-      SDL_FreeSurface(loaded);
+  if (loaded == NULL)
+    return NULL;
 
-      if (optimized != NULL)
-        {
-          Uint32 colorkey = SDL_MapRGB( optimized->format, 0, 0x00, 0x00 );
-          SDL_SetColorKey(optimized, SDL_SRCCOLORKEY, colorkey);
-        }
-    }
+  Uint32 colorkey = SDL_MapRGB(loaded->format, 0x00, 0x00, 0x00);
+  SDL_SetColorKey(loaded, SDL_SRCCOLORKEY, colorkey);
+
+  optimized = SDL_DisplayFormat(loaded);
+  SDL_FreeSurface(loaded);
+
   return optimized;
 }
