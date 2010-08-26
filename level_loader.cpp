@@ -1,3 +1,4 @@
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -31,8 +32,8 @@ level_loader::load_level(std::string filename)
   std::string data = slurp(file);
 
   // Make some calculations
-  int col_width = width / MAX_COLUMNS;
-  int row_height = height / MAX_ROWS;
+  int col_width  = ceilf(width / float(MAX_COLUMNS));
+  int row_height = ceilf(height / float(MAX_ROWS));
 
   // Parse the level
   int row = 0;

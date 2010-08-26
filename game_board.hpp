@@ -61,9 +61,9 @@ private:
   static const int BALL_WIDTH = 12;
   static const int BALL_HEIGHT = 12;
   static const int BALL_RADIUS = BALL_WIDTH / 2;
-  static const int BRICK_WIDTH = 48;
-  static const int BRICK_HEIGHT = 16;
-  static const int PADDLE_WIDTH = 65;
+  static const int BRICK_WIDTH = 40;
+  static const int BRICK_HEIGHT = 20;
+  static const int PADDLE_WIDTH = 57;
 };
 
 #endif
