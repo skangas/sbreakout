@@ -5,6 +5,7 @@
 #include "game_board.hpp"
 #include "game_brick.hpp"
 #include "game_lib.hpp"
+#include "sprites.hpp"
 
 game_board::game_board()
   : last_update(0),
@@ -19,11 +20,11 @@ game_board::game_board()
   paddle_sprite = NULL;
   
   // Add default ball
-  game_ball ball = game_ball(100, 700, vect(10, -20), 3.5);
+  game_ball ball = game_ball(100, 700, vect(10, -20), 1.0);
   balls.push_back(ball);
 
   // Add default level
-  game_brick b = game_brick(400, 100, 1);
+  game_brick b = game_brick(400, 100, 1, 1);
   bricks.push_back(b);
 }
 
@@ -43,58 +44,39 @@ game_board::blit()
   if (brick_sprite == NULL)
     brick_sprite = load_image("yellow_brick.png");
 
-  blit_balls();
-  blit_bricks();
-  blit_paddle();
-}
+  // Blit balls
+  typedef vector<game_ball>::const_iterator BAI;
+  for (BAI ball = balls.begin(); ball != balls.end(); ball++)
+      graphics.blit_sprite(sprites::BALL, 0, ball->x - BALL_RADIUS, ball->y - BALL_RADIUS);
 
-void
-game_board::blit_balls()
-{
-  typedef vector<game_ball>::const_iterator CI;
-  
-  for (CI ball = balls.begin(); ball != balls.end(); ball++)
+  // Blit bricks
+  typedef vector<game_brick>::const_iterator BRI;
+  for (BRI brick = bricks.begin(); brick != bricks.end(); brick++)
     {
-      SDL_Rect pos;
-      pos.x = ball->x - BALL_RADIUS;
-      pos.y = ball->y - BALL_RADIUS;
-      pos.w = BALL_WIDTH;
-      pos.h = BALL_HEIGHT;
+      if (!brick->in_play())
+        continue;
 
-      SDL_BlitSurface(ball_sprite, NULL, surface, &pos);
+      graphics.blit_sprite(sprites::BRICK, brick->get_type(),
+                           brick->get_x(), brick->get_y());
+
+      // SDL_Rect pos;
+      // pos.x = brick->get_x();
+      // pos.y = brick->get_y();
+      // pos.w = BRICK_WIDTH;
+      // pos.h = BRICK_HEIGHT;
+
+      // SDL_BlitSurface(brick_sprite, NULL, surface, &pos);
     }
+
+  // Blit sprites
+  graphics.blit_sprite(sprites::PADDLE, 0, paddle_x, paddle_y);
 }
 
 void
 game_board::blit_bricks()
 {
-  typedef vector<game_brick>::const_iterator CI;
+
   
-  for (CI brick = bricks.begin(); brick != bricks.end(); brick++)
-    {
-      if (!brick->in_play())
-        continue;
-
-      SDL_Rect pos;
-      pos.x = brick->get_x();
-      pos.y = brick->get_y();
-      pos.w = BRICK_WIDTH;
-      pos.h = BRICK_HEIGHT;
-
-      SDL_BlitSurface(brick_sprite, NULL, surface, &pos);
-    }
-}
-
-void
-game_board::blit_paddle()
-{
-  SDL_Rect pos;
-  pos.x = paddle_x;
-  pos.y = paddle_y;
-  pos.w = 100;
-  pos.h = 100;
-
-  SDL_BlitSurface(paddle_sprite, NULL, surface, &pos);
 }
 
 void
@@ -281,6 +263,8 @@ game_board::set_surface(SDL_Surface* surface)
 {
   this->surface = surface;
   paddle_y = surface->h * 0.95;
+  graphics.set_surface(surface);
+  graphics.load_sprites();
 }
 
 void

@@ -8,19 +8,21 @@
 class game_brick
 {
 public:
-  game_brick(int x, int y, int life);
+  game_brick(int x, int y, int type, int life);
   ~game_brick();
 
+  int get_type() const;
   int get_x() const;
   int get_y() const;
   void hit();
   bool in_play() const;
 
 private:
+  int type;
+  int invisible;
   int life;
   int x;
   int y;
-  // add type here?
 };
 
 #endif

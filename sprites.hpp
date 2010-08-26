@@ -4,28 +4,24 @@
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 
+#include <vector>
+
+using std::vector;
+
 class sprites
 {
 public:
-  sprites(SDL_surface surface);
+  sprites();
   ~sprites();
 
-  void blit_sprite(int num, int x, int y);
+  void blit_sprite(int type, int index, int x, int y);
+  void load_sprites();
+  void set_surface(SDL_Surface* surface);
 
-
-
+  enum type { BALL, BRICK, BONUS, PADDLE };
 private:
-  enum {
-    PADDLE;
-  }
-  // 19 bred, 14 hög
-
-  // paddle
-  
-
-  static const SDL_Rect clip[2];
-
-  SDL_Surface surface;
+  SDL_Surface* surface;
+  SDL_Surface* charts[4];
 };
 
 #endif

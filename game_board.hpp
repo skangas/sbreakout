@@ -9,6 +9,7 @@
 #include "game_ball.hpp"
 #include "game_brick.hpp"
 #include "game_lib.hpp"
+#include "sprites.hpp"
 
 struct brick {
   int x;
@@ -38,6 +39,8 @@ private:
   void handle_paddle_collision(game_ball& ball, int new_x, int new_y);
   void handle_wall_collision(game_ball& ball, int new_x, int new_y);
 
+  sprites graphics;
+
   // void check_block_collision(game_ball* ball, const SDL_Rect &block);
 
   int last_update;
@@ -55,11 +58,11 @@ private:
   SDL_Surface* paddle_sprite;
 
   // Default ball speed
-  static const int BALL_WIDTH = 16;
-  static const int BALL_HEIGHT = 16;
+  static const int BALL_WIDTH = 12;
+  static const int BALL_HEIGHT = 12;
+  static const int BALL_RADIUS = BALL_WIDTH / 2;
   static const int BRICK_WIDTH = 48;
   static const int BRICK_HEIGHT = 16;
-  static const int BALL_RADIUS = BALL_WIDTH / 2;
   static const int PADDLE_WIDTH = 65;
 };
 

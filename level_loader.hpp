@@ -20,7 +20,7 @@ private:
   int height;
   
   const static int MAX_COLUMNS = 20;
-  const static int MAX_ROWS = 50;
+  const static int MAX_ROWS = 30;
 };
 
 #endif

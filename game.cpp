@@ -52,7 +52,6 @@ game::run()
 
       handle_events();
 
-
       // SDL_BlitSurface(status, NULL, screen, NULL);
 
       // Limit the frame rate to FRAME_PER_SECOND
