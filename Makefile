@@ -1,5 +1,6 @@
 all : 
 	g++ -O2 -lSDL -lSDL_image -lSDL_ttf \
+	`pkg-config --cflags --libs sigc++-2.0` \
 	-o breakout \
 	game.cpp \
 	game_ball.cpp \

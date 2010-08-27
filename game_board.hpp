@@ -8,13 +8,9 @@
 
 #include "game_ball.hpp"
 #include "game_brick.hpp"
+#include "game_paddle.hpp"
 #include "game_lib.hpp"
 #include "sprites.hpp"
-
-struct brick {
-  int x;
-  int y;
-};
 
 using std::vector;
 
@@ -30,32 +26,24 @@ public:
   void set_surface(SDL_Surface* surface);
   void update();
 
-private:
-  void blit_balls();
-  void blit_bricks();
-  void blit_paddle();
+  vector<game_ball> balls;
+  vector<game_brick> bricks;
+  game_paddle paddle;
 
+  void handle_event_mouse_left();
+
+private:
   void handle_brick_collision(game_ball& ball, int new_x, int new_y);
   void handle_paddle_collision(game_ball& ball, int new_x, int new_y);
   void handle_wall_collision(game_ball& ball, int new_x, int new_y);
 
   sprites graphics;
 
-  // void check_block_collision(game_ball* ball, const SDL_Rect &block);
-
   int last_update;
-
-  vector<game_ball> balls;
-  vector<game_brick> bricks;
 
   int paddle_x;
   int paddle_y;
   SDL_Surface* surface;
-
-  // SDL_Pictures
-  SDL_Surface* ball_sprite;
-  SDL_Surface* brick_sprite;
-  SDL_Surface* paddle_sprite;
 
   // Default ball speed
   static const int BALL_WIDTH = 12;

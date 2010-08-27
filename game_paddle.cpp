@@ -2,22 +2,26 @@
 
 game_paddle::game_paddle()
   : x(0),
-    y(0)
+    y(0),
+    ball(true)
+{ }
+
+game_paddle::~game_paddle() { }
+
+void
+game_paddle::add_ball()
 {
+  ball = true;
 }
 
-game_paddle::~game_paddle()
+bool
+game_paddle::has_ball()
 {
+  return ball;
 }
 
 void
-game_paddle::blit(SDL_Surface* surface)
+game_paddle::release_ball()
 {
-  
-}
-
-void
-game_paddle::set_x(int x)
-{
-  this->x = x;
+  ball = false;
 }

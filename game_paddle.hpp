@@ -1,21 +1,21 @@
 #ifndef GAME_PADDLE_HPP
 #define GAME_PADDLE_HPP
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_image.h"
-
 class game_paddle
 {
 public:
   game_paddle();
   ~game_paddle();
 
-  void blit(SDL_Surface* surface);
-  void set_x(int x);
+  void add_ball();
+  bool has_ball();
+  void release_ball();
 
-private:
   int x;
   int y;
+
+private:
+  bool ball;
 };
 
 #endif

@@ -6,12 +6,41 @@
 
 game::game()
   : running(false),
-    frame(0)
-{
-}
+    frame(0),
+    board()
+{ }
 
-game::~game()
+game::~game() { }
+
+bool
+game::init()
 {
+  if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
+    return false;
+
+  screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_SWSURFACE);
+  if (screen == NULL)
+    return false;
+
+  // Create game area
+  game_area = SDL_CreateRGBSurface(SDL_SWSURFACE, SCREEN_WIDTH * 0.8, SCREEN_HEIGHT * 0.9,
+                                   SCREEN_BPP, 0, 0, 0, 0);
+  board.set_surface(game_area);
+
+  // Create level loader
+  loader = level_loader(game_area->w, game_area->h);
+
+  // Initialize sdl-ttf
+  if (TTF_Init() == -1)
+    return false;
+
+  // Set window title
+  SDL_WM_SetCaption("Stefan's Breakout", NULL);
+
+  // Hide the mouse cursor
+  SDL_ShowCursor(SDL_DISABLE); 
+
+  return true;
 }
 
 void
@@ -45,14 +74,13 @@ game::run()
       board.update();
       board.blit();
 
+      // Handle user input events
+      handle_input_events();
+
       // Blit surfaces
       SDL_BlitSurface(background, NULL, screen, NULL);
       SDL_Rect target = { SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.05 };
       SDL_BlitSurface(game_area, NULL, screen, &target);
-
-      handle_events();
-
-      // SDL_BlitSurface(status, NULL, screen, NULL);
 
       // Limit the frame rate to FRAME_PER_SECOND
       int frame_ticks = SDL_GetTicks() - frame_start;
@@ -73,36 +101,6 @@ game::run()
 }
 
 bool
-game::init()
-{
-  if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
-    return false;
-
-  screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_SWSURFACE);
-  if (screen == NULL)
-    return false;
-
-  // Create game area
-  game_area = SDL_CreateRGBSurface(SDL_SWSURFACE, SCREEN_WIDTH * 0.8, SCREEN_HEIGHT * 0.9,
-                                   SCREEN_BPP, 0, 0, 0, 0);
-
-  board.set_surface(game_area);
-  loader = level_loader(game_area->w, game_area->h);
-
-  // Initialize sdl-ttf
-  if (TTF_Init() == -1)
-    return false;
-
-  // Hide mouse cursor
-  SDL_ShowCursor(SDL_DISABLE); 
-
-  // Set window title
-  SDL_WM_SetCaption( "Stefan's Breakout", NULL );
-
-  return true;
-}
-
-bool
 game::quit()
 {
   SDL_FreeSurface(screen);
@@ -111,8 +109,11 @@ game::quit()
 
 // private methods
 
+/**
+ * Handle input events.
+ */
 void
-game::handle_events()
+game::handle_input_events()
 {
   SDL_Event event;
 
@@ -122,6 +123,10 @@ game::handle_events()
         {
         case SDL_MOUSEMOTION:
           board.set_paddle(event.motion.x);
+          break;
+        case SDL_MOUSEBUTTONDOWN:
+          if (event.button.button == SDL_BUTTON_LEFT)
+            board.handle_event_mouse_left();
           break;
         case SDL_KEYDOWN:
           if (event.key.keysym.sym == SDLK_ESCAPE)

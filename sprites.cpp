@@ -13,7 +13,7 @@ const std::string filenames[4] = {
   "graphics/paddle.png"
 };
 
-const int rgb[4][3] = {
+const int alpha[4][3] = {
   { 0, 0, 0 },    // BALL
   { -1, -1, -1 }, // BRICK
   { -1, -1, -1 }, // BONUS
@@ -79,8 +79,6 @@ sprites::blit_sprite(int type, int index, int x, int y)
   pos.w = clip.w;
   pos.h = clip.h;
 
-  // SDL_FillRect(charts[type], NULL, 0);
-
   SDL_BlitSurface(charts[type], &clip, surface, &pos);
 }
 
@@ -89,7 +87,7 @@ sprites::load_sprites()
 {
   for (int i = 0; i < 4; i++)
     {
-      charts[i] = load_image(filenames[i]);//, rgb[i][0], rgb[i][1], rgb[i][2]);
+      charts[i] = load_image(filenames[i], alpha[i][0], alpha[i][1], alpha[i][2]);
     }
 }
 

@@ -5,27 +5,13 @@
 #include "game_board.hpp"
 #include "game_brick.hpp"
 #include "game_lib.hpp"
+#include "game_paddle.hpp"
 #include "sprites.hpp"
 
 game_board::game_board()
-  : last_update(0),
-    paddle_x(0),
-    paddle_y(0)
+  : last_update(0)
 {
   surface = NULL;
-
-  // Prepare sprites -- segfault if placed here, why?
-  ball_sprite = NULL;
-  brick_sprite = NULL;
-  paddle_sprite = NULL;
-  
-  // Add default ball
-  game_ball ball = game_ball(100, 700, vect(10, -20), 1.0);
-  balls.push_back(ball);
-
-  // Add default level
-  game_brick b = game_brick(400, 100, 1, 1);
-  bricks.push_back(b);
 }
 
 game_board::~game_board()
@@ -37,19 +23,14 @@ game_board::blit()
 {
   assert(surface != NULL);
 
-  if (paddle_sprite == NULL)
-    paddle_sprite = load_image("paddle.bmp");
-  if (ball_sprite == NULL)
-    ball_sprite = load_image("ball.png");
-  if (brick_sprite == NULL)
-    brick_sprite = load_image("yellow_brick.png");
-
-  // Blit balls
+  // Blit all balls
   typedef vector<game_ball>::const_iterator BAI;
   for (BAI ball = balls.begin(); ball != balls.end(); ball++)
+    {
       graphics.blit_sprite(sprites::BALL, 0, ball->x - BALL_RADIUS, ball->y - BALL_RADIUS);
+    }  
 
-  // Blit bricks
+  // Blit all bricks
   typedef vector<game_brick>::const_iterator BRI;
   for (BRI brick = bricks.begin(); brick != bricks.end(); brick++)
     {
@@ -58,25 +39,33 @@ game_board::blit()
 
       graphics.blit_sprite(sprites::BRICK, brick->get_type(),
                            brick->get_x(), brick->get_y());
-
-      // SDL_Rect pos;
-      // pos.x = brick->get_x();
-      // pos.y = brick->get_y();
-      // pos.w = BRICK_WIDTH;
-      // pos.h = BRICK_HEIGHT;
-
-      // SDL_BlitSurface(brick_sprite, NULL, surface, &pos);
     }
 
-  // Blit sprites
-  graphics.blit_sprite(sprites::PADDLE, 0, paddle_x, paddle_y);
+  // Blit paddle
+  graphics.blit_sprite(sprites::PADDLE, 0, paddle.x, paddle.y);
+
+  // Blit ball on paddle
+  if (paddle.has_ball())
+    {
+      int x = paddle.x + PADDLE_WIDTH * 0.5 - BALL_RADIUS;
+      int y = paddle.y - BALL_HEIGHT;
+      graphics.blit_sprite(sprites::BALL, 0, x, y);
+    }
 }
 
 void
-game_board::blit_bricks()
+game_board::handle_event_mouse_left()
 {
+  // Release paddle ball
+  if (paddle.has_ball())
+    {
+      int x = paddle.x + PADDLE_WIDTH * 0.5;
+      int y = paddle.y - BALL_HEIGHT;
+      balls.push_back(game_ball(x, y, vect(0, -1), 1.0));
+      paddle.release_ball();
+    }
 
-  
+  // More to come, e.g. shooting laser
 }
 
 void
@@ -100,7 +89,7 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
       int right  = brick->get_x() + BRICK_WIDTH;
       int top    = brick->get_y();
       int bottom = brick->get_y() + BRICK_HEIGHT;
-
+      
       int x_collision, y_collision;
   
       // Find colliding x coordinate
@@ -189,22 +178,21 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
         default: break; // we were inside the brick
         }
     }
-
 }
 
 void
 game_board::handle_paddle_collision(game_ball& ball, int new_x, int new_y)
 {
   // Ball is too far from paddle
-  if (ball.y + BALL_RADIUS < paddle_y)
+  if (ball.y + BALL_RADIUS < paddle.y)
     return;
   // Ball center has passed paddle, so it can not be bounced.
-  if (ball.y > paddle_y)
+  if (ball.y > paddle.y)
     return;
 
   // Find colliding x coordinate
-  int left  = paddle_x;
-  int right = paddle_x + PADDLE_WIDTH;
+  int left  = paddle.x;
+  int right = paddle.x + PADDLE_WIDTH;
 
   int collide_x;
 
@@ -216,11 +204,11 @@ game_board::handle_paddle_collision(game_ball& ball, int new_x, int new_y)
     collide_x = ball.x;
 
   // See if ball is close enough to bounce
-  if (distance(ball.x, ball.y, collide_x, paddle_y) > BALL_RADIUS)
+  if (distance(ball.x, ball.y, collide_x, paddle.y) > BALL_RADIUS)
     return;
 
   // Ok, ball should be bounced.  Determine and set new direction.
-  float hit_paddle = float(collide_x - paddle_x) / PADDLE_WIDTH;
+  float hit_paddle = float(collide_x - paddle.x) / PADDLE_WIDTH;
   float angle      = PI + 0.2 + (PI - 0.4) * hit_paddle;
 
    LOG("angle %f hit_paddle %f", angle, hit_paddle);
@@ -243,6 +231,11 @@ game_board::handle_wall_collision(game_ball& ball, int new_x, int new_y)
     ball.bounce_against_top();
 }
 
+void release_ball()
+{
+  
+}
+
 void
 game_board::set_level(vector<game_brick> new_bricks)
 {
@@ -253,16 +246,16 @@ void
 game_board::set_paddle(int x)
 {
   if (x < surface->w - PADDLE_WIDTH)
-    paddle_x = x;
+    paddle.x = x;
   else
-    paddle_x = surface->w - PADDLE_WIDTH;
+    paddle.x = surface->w - PADDLE_WIDTH;
 }
 
 void
 game_board::set_surface(SDL_Surface* surface)
 {
   this->surface = surface;
-  paddle_y = surface->h * 0.95;
+  paddle.y = surface->h * 0.95;
   graphics.set_surface(surface);
   graphics.load_sprites();
 }

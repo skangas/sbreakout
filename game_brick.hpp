@@ -4,7 +4,6 @@
 /**
  * This class represents a brick.
  */
-
 class game_brick
 {
 public:
@@ -23,6 +22,8 @@ private:
   int life;
   int x;
   int y;
+
+  const static int INVINCIBLE = -1;
 };
 
 #endif

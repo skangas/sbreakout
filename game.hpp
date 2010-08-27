@@ -18,6 +18,8 @@ public:
   bool quit();
   
 private:
+  void handle_input_events();
+
   bool running;
 
   game_board board;
@@ -26,7 +28,7 @@ private:
   int frame;
   int frame_start;
 
-  static const int FRAMES_PER_SECOND = 100;
+  static const int FRAMES_PER_SECOND = 60; // This is what most LCDs can handle
   static const int SCREEN_WIDTH = 1024;
   static const int SCREEN_HEIGHT = 768;
   static const int SCREEN_BPP = 32;
@@ -36,9 +38,6 @@ private:
   SDL_Surface* status;
 
   level_loader loader;
-
-  void blit_paddle();
-  void handle_events();
 };
 
 #endif
