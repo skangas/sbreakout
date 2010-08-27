@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <sigc++/sigc++.h>
+
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 
@@ -32,10 +34,12 @@ public:
 
   void handle_event_mouse_left();
 
+  sigc::signal<void> signal_death;
+
 private:
   void handle_brick_collision(game_ball& ball, int new_x, int new_y);
   void handle_paddle_collision(game_ball& ball, int new_x, int new_y);
-  void handle_wall_collision(game_ball& ball, int new_x, int new_y);
+  void handle_wall_collision(vector<game_ball>::iterator ball, int new_x, int new_y);
 
   sprites graphics;
 

@@ -6,6 +6,7 @@
 #include "SDL/SDL_ttf.h"
 
 #include "game_board.hpp"
+#include "game_rules.hpp"
 #include "level_loader.hpp"
 
 class game {
@@ -23,6 +24,8 @@ private:
   bool running;
 
   game_board board;
+  game_rules rules;
+
   int paddle_location;
 
   int frame;

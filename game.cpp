@@ -3,12 +3,15 @@
 #include <string>
 
 #include "game.hpp"
+#include "game_rules.hpp"
 
 game::game()
   : running(false),
     frame(0),
     board()
-{ }
+{
+  board.signal_death.connect(sigc::mem_fun(rules, &game_rules::death));
+}
 
 game::~game() { }
 
@@ -46,6 +49,7 @@ game::init()
 void
 game::run()
 {
+  char buffer[1024];
   assert(screen != NULL);
 
   // Prepare background
@@ -53,9 +57,11 @@ game::run()
   background = load_image("background.jpg");
 
   // Prepare text
-  TTF_Font* font = TTF_OpenFont("fonts/ProggyCleanSZBP.ttf", 16);
-  SDL_Color text_color = { 255, 0, 0 };
-  status = TTF_RenderText_Solid(font, "---", text_color);
+  TTF_Font* font = TTF_OpenFont("fonts/LiberationSerif-Bold.ttf", 16);
+  TTF_Font* fps_font = TTF_OpenFont("fonts/ProggyCleanSZBP.ttf", 16);
+  SDL_Color status_color = { 0x7F, 0xDF, 0xFF };
+  SDL_Color fps_color = { 0x00, 0x33, 0x00 };
+
   board.set_level(loader.load_level("level001.txt"));
 
   int start = SDL_GetTicks();
@@ -77,10 +83,22 @@ game::run()
       // Handle user input events
       handle_input_events();
 
-      // Blit surfaces
+      // Blit main surfaces
       SDL_BlitSurface(background, NULL, screen, NULL);
       SDL_Rect target = { SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.05 };
       SDL_BlitSurface(game_area, NULL, screen, &target);
+
+      // Show game status texts
+      sprintf(buffer, "LIFE   %d", rules.get_lives());
+      status = TTF_RenderText_Solid(font, buffer, status_color);
+      SDL_Rect status_loc = { target.x + game_area->w + 25, target.y,
+                              10000, 10000 };
+      SDL_BlitSurface(status, NULL, screen, &status_loc);
+
+      sprintf(buffer, "SCORE   %d", rules.get_score());
+      status = TTF_RenderText_Solid(font, buffer, status_color);
+      status_loc.y += 35;
+      SDL_BlitSurface(status, NULL, screen, &status_loc);
 
       // Limit the frame rate to FRAME_PER_SECOND
       int frame_ticks = SDL_GetTicks() - frame_start;
@@ -89,12 +107,12 @@ game::run()
 
       // Show FPS counter
       SDL_Surface* fps_surface;
-      char buffer[256];
+
       int fps = frame / float((frame_start - start) / 1000.0);
       sprintf(buffer, "%d FPS", fps);
-      fps_surface = TTF_RenderText_Solid(font, buffer, text_color);
-      SDL_Rect loc = { SCREEN_WIDTH - 50, 5, 100, 100 };
-      SDL_BlitSurface(fps_surface, NULL, screen, &loc);
+      fps_surface = TTF_RenderText_Solid(fps_font, buffer, fps_color);
+      SDL_Rect fps_loc = { SCREEN_WIDTH - 50, 5, 100, 100 };
+      SDL_BlitSurface(fps_surface, NULL, screen, &fps_loc);
 
       SDL_Flip(screen);
     }

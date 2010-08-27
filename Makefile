@@ -8,6 +8,7 @@ all :
 	game_brick.cpp \
 	game_lib.cpp \
 	game_paddle.cpp \
+	game_rules.cpp \
 	level_loader.cpp \
 	main.cpp \
 	sprites.cpp \

@@ -219,21 +219,14 @@ game_board::handle_paddle_collision(game_ball& ball, int new_x, int new_y)
 }
 
 void
-game_board::handle_wall_collision(game_ball& ball, int new_x, int new_y)
+game_board::handle_wall_collision(vector<game_ball>::iterator ball, int new_x, int new_y)
 {
   if (new_x + BALL_RADIUS > surface->w)
-    ball.bounce_against_right();
+    ball->bounce_against_right();
   else if (new_x - BALL_RADIUS < 0)
-    ball.bounce_against_left();
-  else if (new_y + BALL_RADIUS > surface->h)
-    ball.bounce_against_bottom();
+    ball->bounce_against_left();
   else if (new_y - BALL_RADIUS < 0)
-    ball.bounce_against_top();
-}
-
-void release_ball()
-{
-  
+    ball->bounce_against_top();
 }
 
 void
@@ -266,11 +259,30 @@ game_board::update()
   int this_update = SDL_GetTicks();
   int ticks = this_update - last_update;
 
-  typedef vector<game_ball>::iterator CI;
+  // If there are no balls, this means we have recently died, and since update()
+  // has been called, someone has decided we should continue playing.  Add ball.
+  if (balls.size() == 0)
+    paddle.add_ball();
+
+  typedef vector<game_ball>::iterator BAI;
+
+  // Holds a ball that has fallen through floor -- see below
+  BAI ball_to_erase = balls.end();
 
   // Iterate and try to move all balls while checking for collisions
-  for (CI ball = balls.begin(); ball != balls.end(); ball++)
+  for (BAI ball = balls.begin(); ball != balls.end(); ball++)
     {
+      // Handle ball falling through floor
+      if (ball->y > surface->h)
+        {
+          // Signal death if we are now out of balls
+          if (balls.size() == 1)
+              signal_death.emit();
+          // We erase the ball after the loop is done
+          ball_to_erase = ball;
+          continue;
+        }
+
       int new_x = ball->get_new_x(ticks);
       int new_y = ball->get_new_y(ticks);
 
@@ -281,7 +293,7 @@ game_board::update()
       handle_paddle_collision(*ball, new_x, new_y);
 
       // Collision detection against the walls
-      handle_wall_collision(*ball, new_x, new_y);
+      handle_wall_collision(ball, new_x, new_y);
 
       // There was a choice between looping here, and simply assuming there are
       // no more collisions this frame, which means we can set the ball off in
@@ -295,6 +307,10 @@ game_board::update()
       // Verify the new position
       ball->move(ticks);
     }
+
+  // OK, we have looped through all balls.  It is now safe to erase ball.
+  if (ball_to_erase != balls.end())
+    balls.erase(ball_to_erase);
 
   last_update = this_update;
 }
