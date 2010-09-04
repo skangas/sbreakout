@@ -71,7 +71,7 @@ level_loader::load_level(std::string filename)
           // Create the brick
           int x = col * col_width;
           int y = row * row_height;
-          bricks.push_back(game_brick(x, y, type, 1));
+          bricks.push_back(game_brick(x, y, type));
         }
 
       col++;

@@ -13,10 +13,10 @@ public:
   int get_score();
 
 private:
+  static const int brick_values[];
+
   int lives;
   int score;
-
-  const static int brick_worth[];
 };
 
 #endif // RULES_HPP

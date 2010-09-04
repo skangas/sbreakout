@@ -72,12 +72,11 @@ game_board::handle_event_mouse_left()
 void
 game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
 {
-  typedef vector<game_brick>::iterator BI;
-
   int closest_distance;
   game_brick *closest_brick = NULL;
 
   // Look for the closest brick
+  typedef vector<game_brick>::iterator BI;
   for (BI brick = bricks.begin(); brick != bricks.end(); brick++)
     {
       if (!brick->in_play())
@@ -111,6 +110,8 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
 
       ball.bounce_on_rect(closest_brick->get_x(), closest_brick->get_y(),
                           BRICK_WIDTH, BRICK_HEIGHT);
+
+      signal_brick_destroyed(closest_brick->get_type());
     }
 }
 
@@ -164,7 +165,13 @@ game_board::handle_wall_collision(game_ball& ball, int new_x, int new_y)
 bool
 game_board::is_clear()
 {
-  return bricks.size() == 0;
+  typedef vector<game_brick>::iterator BI;
+
+  if (bricks.size() > 0)
+    for (BI brick = bricks.begin(); brick != bricks.end(); brick++)
+      if (!brick->is_invincible())
+        return 0;
+  return 1;
 }
 
 void

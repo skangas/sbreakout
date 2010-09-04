@@ -36,7 +36,7 @@ public:
   void handle_event_mouse_left();
 
   sigc::signal<void> signal_death;
-  sigc::signal<void> signal_brick_destroyed;
+  sigc::signal<void, int> signal_brick_destroyed;
 
 private:
   void handle_brick_collision(game_ball& ball, int new_x, int new_y);

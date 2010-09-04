@@ -11,6 +11,7 @@ game::game()
     frame(0)
 {
   board.signal_death.connect(sigc::mem_fun(rules, &game_rules::death));
+  board.signal_brick_destroyed.connect(sigc::mem_fun(rules, &game_rules::brick_destroyed));
 }
 
 game::~game() { }

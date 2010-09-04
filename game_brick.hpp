@@ -7,7 +7,7 @@
 class game_brick
 {
 public:
-  game_brick(int x, int y, int type, int life);
+  game_brick(int x, int y, int type);
   ~game_brick();
 
   int get_type() const;
@@ -15,15 +15,18 @@ public:
   int get_y() const;
   void hit();
   bool in_play() const;
+  bool is_invincible() const;
 
 private:
+  static const int INVINCIBLE = -1;
+  static const int brick_lives[];
+  static const int brick_transforms_to[];
+
   int type;
   int invisible;
   int life;
   int x;
   int y;
-
-  const static int INVINCIBLE = -1;
 };
 
 #endif

@@ -1,14 +1,27 @@
 #include "game_rules.hpp"
 
-const int game_rules::brick_worth[] = {
-  25, // type XX
-  25, // type XX
-  25, // type XX
-  25, // type XX
-  25, // type XX
-  25, // type XX
-  25, // type XX
-  25, // type XX
+const int game_rules::brick_values[] = {
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15,
+  15
 };
 
 game_rules::game_rules()
@@ -21,7 +34,7 @@ game_rules::~game_rules() { }
 void
 game_rules::brick_destroyed(int type)
 {
-  
+  score += brick_values[type];
 }
 
 void
