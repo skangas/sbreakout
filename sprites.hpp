@@ -8,6 +8,16 @@
 
 using std::vector;
 
+const int BALL_WIDTH = 12;
+const int BALL_HEIGHT = 12;
+const int BALL_RADIUS = BALL_WIDTH / 2;
+
+const int BRICK_WIDTH = 40;
+const int BRICK_HEIGHT = 20;
+
+const int PADDLE_WIDTH = 53;
+const int PADDLE_HEIGHT = 17;
+
 class sprites
 {
 public:

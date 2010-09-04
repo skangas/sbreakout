@@ -4,7 +4,6 @@
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 
-#include "game_lib.hpp"
 #include "vect.hpp"
 
 class game_ball
@@ -22,17 +21,23 @@ public:
   void bounce_against_left();
   void bounce_against_right();
   void bounce_against_top();
+  void bounce_on_rect(int x, int y, int w, int h);
 
   void move(int ticks);
+  float get_new_x();
   float get_new_x(int ticks);
+  float get_new_y();
   float get_new_y(int ticks);
-
+  void set_ticks(int ticks);
+  
 private:
 
   void ensure_minimum_rotation();
 
   void turn_left();
   void turn_right();
+
+  int ticks;
 };
 
 #endif

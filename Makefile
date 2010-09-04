@@ -12,6 +12,7 @@ all :
 	level_loader.cpp \
 	main.cpp \
 	sprites.cpp \
+	timer.cpp \
 	vect.cpp
 
 clean :

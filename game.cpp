@@ -7,8 +7,8 @@
 
 game::game()
   : running(false),
-    frame(0),
-    board()
+    level(0),
+    frame(0)
 {
   board.signal_death.connect(sigc::mem_fun(rules, &game_rules::death));
 }
@@ -64,21 +64,24 @@ game::run()
 
   board.set_level(loader.load_level("level001.txt"));
 
-  int start = SDL_GetTicks();
+  Uint32 start = SDL_GetTicks();
+  clock.start();
 
   running = true;
   while (running)
     {
+      // maybe_next_level();
+
       int frame_start = SDL_GetTicks();
-      frame++;
+      int ticks = clock.get_ticks();
 
       // Clear surfaces
       SDL_FillRect(screen, NULL, 0);
       SDL_FillRect(game_area, NULL, 0);
 
       // Update and blit the game area
-      board.update();
       board.blit();
+      board.update(ticks);
 
       // Handle user input events
       handle_input_events();
@@ -101,6 +104,7 @@ game::run()
       SDL_BlitSurface(status, NULL, screen, &status_loc);
 
       // Limit the frame rate to FRAME_PER_SECOND
+      frame++;
       int frame_ticks = SDL_GetTicks() - frame_start;
       if (frame_ticks < 1000 / FRAMES_PER_SECOND)
         SDL_Delay((1000/FRAMES_PER_SECOND) - frame_ticks);
@@ -139,21 +143,32 @@ game::handle_input_events()
     {
       switch (event.type)
         {
+        case SDL_KEYDOWN:
+          switch (event.key.keysym.sym)
+            {
+            case SDLK_ESCAPE:
+              running = false;
+              break;
+            case SDLK_p:
+              clock.toggle_start_pause();
+              break;
+            }
+          break;
         case SDL_MOUSEMOTION:
-          board.set_paddle(event.motion.x);
+          if (clock.is_running())
+            {
+              int x = event.motion.x;
+              x -= SCREEN_WIDTH * 0.05;
+              x -= 26; // center paddle to cursor
+              board.set_paddle(x);
+            }
           break;
         case SDL_MOUSEBUTTONDOWN:
           if (event.button.button == SDL_BUTTON_LEFT)
             board.handle_event_mouse_left();
           break;
-        case SDL_KEYDOWN:
-          if (event.key.keysym.sym == SDLK_ESCAPE)
-            running = false;
-          break;
         case SDL_QUIT:
           running = false;
-          break;
-        default:
           break;
         }
     }      

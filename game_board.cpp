@@ -9,7 +9,8 @@
 #include "sprites.hpp"
 
 game_board::game_board()
-  : last_update(0)
+  : last_update(0),
+    paused(false)
 {
   surface = NULL;
 }
@@ -73,11 +74,8 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
 {
   typedef vector<game_brick>::iterator BI;
 
-  int closest_distance = -1;
+  int closest_distance;
   game_brick *closest_brick = NULL;
-
-  enum direction { TOP = 0, BOTTOM = 1, LEFT = 2, RIGHT = 4, INSIDE = 8 };
-  direction ball_hit;
 
   // Look for the closest brick
   for (BI brick = bricks.begin(); brick != bricks.end(); brick++)
@@ -85,83 +83,25 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
       if (!brick->in_play())
         continue;
 
-      int left   = brick->get_x();
-      int right  = brick->get_x() + BRICK_WIDTH;
-      int top    = brick->get_y();
-      int bottom = brick->get_y() + BRICK_HEIGHT;
+      SDL_Rect r;
+      r.x = brick->get_x();
+      r.y = brick->get_y();
+      r.w = BRICK_WIDTH;
+      r.h = BRICK_HEIGHT;
       
-      int x_collision, y_collision;
+      int coll_x, coll_y;
+      bool collision = collision_detection(&ball, &r, coll_x, coll_y);
+
+      if (!collision)
+        continue;
   
-      // Find colliding x coordinate
-      
-      // NOTE: We use the _new_ X/Y to decide collision, but the _old_ X to
-      // decide which direction the ball was coming from.  This is to avoid
-      // using the inside of the brick to decide on direction.
-      if (new_x < left)
-          x_collision = left;
-      else if (new_x > right)
-          x_collision = right;
-      else
-        x_collision = new_x;
-
-      // Find colliding y coordinate
-      if (new_y < top)
-          y_collision = top;
-      else if (new_y > bottom)
-          y_collision = bottom;
-      else
-        y_collision = new_y;
-
-      int dist = distance(new_x, new_y, x_collision, y_collision);
-
-      // No collision if the ball is too far from this brick
-      if (dist > BALL_RADIUS)
-        continue;
-
-      // Cancel if we have already seen a brick that was closer to the ball
-      if (closest_distance != -1 && dist > closest_distance)
-        continue;
-      else
+      // Keep this brick unless we have already seen a brick that was closer to the ball
+      int dist = distance(new_x, new_y, coll_x, coll_y);
+      if (closest_brick == NULL || dist < closest_distance)
         {
-          closest_distance = dist;
           closest_brick = &(*brick);
+          closest_distance = dist;
         }
-
-      // TODO:
-      // if (ball.invincible) continue;
-
-      // Bounce the ball depending on its position.  Here we need to decide
-      // which border it makes the most sense to bounce against.  We want to
-      // bounce the ball against the border closest to the collision.
-
-      int above = top - ball.y;
-      int below = ball.y - bottom;
-      int left_of = left - ball.x;
-      int right_of = ball.x - right;
-
-      ball_hit = INSIDE;
-
-      if (left_of > 0)
-        {
-          if (left_of > below && left_of > above)
-            {
-              ball_hit = RIGHT;
-              above = below = 0;
-            }
-        }
-      else if (right_of > 0)
-        {
-          if (right_of > below && right_of > above)
-            {
-              ball_hit = LEFT;
-              above = below = 0;
-            }
-        }
-
-      if (above > 0)
-        ball_hit = BOTTOM;
-      else if (below > 0)
-        ball_hit = TOP;
     }
 
   // If we did find a brick, execute the necessary actions
@@ -169,64 +109,62 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
     {
       closest_brick->hit();
 
-      switch (ball_hit)
-        {
-        case RIGHT:  ball.bounce_against_right();  break;
-        case LEFT:   ball.bounce_against_left();   break;
-        case TOP:    ball.bounce_against_top();    break;
-        case BOTTOM: ball.bounce_against_bottom(); break;
-        default: break; // we were inside the brick
-        }
+      ball.bounce_on_rect(closest_brick->get_x(), closest_brick->get_y(),
+                          BRICK_WIDTH, BRICK_HEIGHT);
     }
 }
 
 void
 game_board::handle_paddle_collision(game_ball& ball, int new_x, int new_y)
 {
-  // Ball is too far from paddle
-  if (ball.y + BALL_RADIUS < paddle.y)
-    return;
-  // Ball center has passed paddle, so it can not be bounced.
-  if (ball.y > paddle.y)
-    return;
+  SDL_Rect r;
+  r.x = paddle.x;
+  r.y = paddle.y;
+  r.w = PADDLE_WIDTH;
+  r.h = PADDLE_HEIGHT;
 
-  // Find colliding x coordinate
-  int left  = paddle.x;
-  int right = paddle.x + PADDLE_WIDTH;
+  int coll_x, coll_y;
+  bool collision = collision_detection(&ball, &r, coll_x, coll_y);
 
-  int collide_x;
-
-  if (ball.x < left)
-    collide_x = left;
-  else if (ball.x > right)
-    collide_x = right;
-  else
-    collide_x = ball.x;
-
-  // See if ball is close enough to bounce
-  if (distance(ball.x, ball.y, collide_x, paddle.y) > BALL_RADIUS)
+  if (!collision)
     return;
 
   // Ok, ball should be bounced.  Determine and set new direction.
-  float hit_paddle = float(collide_x - paddle.x) / PADDLE_WIDTH;
-  float angle      = PI + 0.2 + (PI - 0.4) * hit_paddle;
+  // ball.bounce_on_rect(paddle.x, paddle.y, PADDLE_WIDTH, PADDLE_HEIGHT);
 
-   LOG("angle %f hit_paddle %f", angle, hit_paddle);
+  // If we bounced on the top of the paddle, adjust ball angle slightly
+  int left_of  = paddle.x - ball.x;
+  int right_of = ball.x - (paddle.x + PADDLE_WIDTH);
+  int above    = paddle.y - ball.y;
+  if (above > left_of && above > right_of)
+    {
+      ball.bounce_against_bottom();
 
-  ball.direction.x = cos(angle);
-  ball.direction.y = sin(angle);
-  ball.direction.normalize();
+      float percent_from_left = float(coll_x - paddle.x) / PADDLE_WIDTH;
+      float angle = PI * 1.2 + (PI * 0.6 ) * percent_from_left;
+
+      ball.direction.x += cos(angle);
+      ball.direction.y += sin(angle);
+      ball.direction.normalize();
+    }
+
 }
 
 void
-game_board::handle_wall_collision(vector<game_ball>::iterator ball, int new_x, int new_y)
+game_board::handle_wall_collision(game_ball& ball, int new_x, int new_y)
 {
   if (new_x + BALL_RADIUS > surface->w)
-    ball->bounce_against_right();
+    ball.bounce_against_right();
   else if (new_x - BALL_RADIUS < 0)
-    ball->bounce_against_left();
+    ball.bounce_against_left();
   else if (new_y - BALL_RADIUS < 0)
-    ball->bounce_against_top();
+    ball.bounce_against_top();
+}
+
+bool
+game_board::is_clear()
+{
+  return bricks.size() == 0;
 }
 
 void
@@ -238,10 +176,12 @@ game_board::set_level(vector<game_brick> new_bricks)
 void
 game_board::set_paddle(int x)
 {
-  if (x < surface->w - PADDLE_WIDTH)
-    paddle.x = x;
-  else
+  if (x < 0)
+    paddle.x = 0;
+  else if (x > surface->w - PADDLE_WIDTH)
     paddle.x = surface->w - PADDLE_WIDTH;
+  else
+    paddle.x = x;
 }
 
 void
@@ -254,10 +194,10 @@ game_board::set_surface(SDL_Surface* surface)
 }
 
 void
-game_board::update()
+game_board::update(int ticks)
 {
-  int this_update = SDL_GetTicks();
-  int ticks = this_update - last_update;
+  if (!ticks)
+    return;
 
   // If there are no balls, this means we have recently died, and since update()
   // has been called, someone has decided we should continue playing.  Add ball.
@@ -283,17 +223,19 @@ game_board::update()
           continue;
         }
 
+      ball->set_ticks(ticks);
+
       int new_x = ball->get_new_x(ticks);
       int new_y = ball->get_new_y(ticks);
 
-      // Check for brick collision
+      // Check for brick collisions
       handle_brick_collision(*ball, new_x, new_y);
 
       // Check for paddle collision
       handle_paddle_collision(*ball, new_x, new_y);
 
       // Collision detection against the walls
-      handle_wall_collision(ball, new_x, new_y);
+      handle_wall_collision(*ball, new_x, new_y);
 
       // There was a choice between looping here, and simply assuming there are
       // no more collisions this frame, which means we can set the ball off in
@@ -311,6 +253,4 @@ game_board::update()
   // OK, we have looped through all balls.  It is now safe to erase ball.
   if (ball_to_erase != balls.end())
     balls.erase(ball_to_erase);
-
-  last_update = this_update;
 }

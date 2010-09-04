@@ -8,6 +8,7 @@
 #include "game_board.hpp"
 #include "game_rules.hpp"
 #include "level_loader.hpp"
+#include "timer.hpp"
 
 class game {
 public:
@@ -21,12 +22,12 @@ public:
 private:
   void handle_input_events();
 
+  int level;
   bool running;
 
   game_board board;
   game_rules rules;
-
-  int paddle_location;
+  timer clock;
 
   int frame;
   int frame_start;

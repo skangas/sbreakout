@@ -2,9 +2,45 @@
 #include <iostream>
 
 #include "game_lib.hpp"
+#include "sprites.hpp"
+
+bool
+collision_detection(game_ball* ball, const SDL_Rect* rect, int& coll_x, int& coll_y)
+{
+  int new_x = ball->get_new_x();
+  int new_y = ball->get_new_y();
+
+  int left   = rect->x;
+  int top    = rect->y;
+  int right  = rect->x + rect->w;
+  int bottom = rect->y + rect->h; 
+  
+  // Find colliding x coordinate
+  if (new_x < left)
+    coll_x = left;
+  else if (new_x > right)
+    coll_x = right;
+  else
+    coll_x = new_x;
+
+  // Find colliding y coordinate
+  if (new_y < top)
+    coll_y = top;
+  else if (new_y > bottom)
+    coll_y = bottom;
+  else
+    coll_y = new_y;
+
+  // No collision if the ball is too far from rectangle
+  int dist = distance(new_x, new_y, coll_x, coll_y);
+  if (dist > BALL_RADIUS)
+    return false;
+
+  return true;
+}
 
 /**
- * Calculate distance between two
+ * Calculate distance between two points
  */
 float
 distance(int x1, int y1, int x2, int y2)

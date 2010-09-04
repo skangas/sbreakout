@@ -23,10 +23,11 @@ public:
   ~game_board();
 
   void blit();
+  bool is_clear();
   void set_level(vector<game_brick> new_bricks);
   void set_paddle(int x);
   void set_surface(SDL_Surface* surface);
-  void update();
+  void update(int ticks);
 
   vector<game_ball> balls;
   vector<game_brick> bricks;
@@ -35,27 +36,21 @@ public:
   void handle_event_mouse_left();
 
   sigc::signal<void> signal_death;
+  sigc::signal<void> signal_brick_destroyed;
 
 private:
   void handle_brick_collision(game_ball& ball, int new_x, int new_y);
   void handle_paddle_collision(game_ball& ball, int new_x, int new_y);
-  void handle_wall_collision(vector<game_ball>::iterator ball, int new_x, int new_y);
+  void handle_wall_collision(game_ball& ball, int new_x, int new_y);
 
   sprites graphics;
 
   int last_update;
+  bool paused;
 
   int paddle_x;
   int paddle_y;
   SDL_Surface* surface;
-
-  // Default ball speed
-  static const int BALL_WIDTH = 12;
-  static const int BALL_HEIGHT = 12;
-  static const int BALL_RADIUS = BALL_WIDTH / 2;
-  static const int BRICK_WIDTH = 40;
-  static const int BRICK_HEIGHT = 20;
-  static const int PADDLE_WIDTH = 57;
 };
 
 #endif

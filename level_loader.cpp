@@ -26,52 +26,60 @@ level_loader::load_level(std::string filename)
 {
   std::vector<game_brick> bricks;
 
-  std::ifstream file;
-  file.open(filename.c_str());
-
-  std::string data = slurp(file);
-
   // Make some calculations
   int col_width  = ceilf(width / float(MAX_COLUMNS));
   int row_height = ceilf(height / float(MAX_ROWS));
 
-  // Parse the level
+  // Initialize count
   int row = 0;
   int col = 0;
 
-  for (const char* c = data.c_str(); *c != '\0'; c++)
+  // Read the level file
+  std::ifstream file;
+  file.open(filename.c_str());
+  std::string data = slurp(file);
+
+  // Parse the level
+  std::stringstream ss(data);
+  while (!ss.eof())
     {
-      if (col > MAX_COLUMNS)
+      int type;
+      // If there is an error, warn and stop parsing
+      if ((ss >> type).fail())
+        {
+          std::cerr << "There was an error in the level file " << filename
+                    << " while parsing level row " << row << " col " << col << "\n";
+          continue;
+        }
+
+      // EOF marker
+      if (type == 99)
+        break;
+
+      // Wrap on last column
+      if (col >= MAX_COLUMNS)
         {
           col = 0;
           row++;
         }
 
-      switch (*c)
+      // In level files, we take 0 to mean no brick, but the internal brick
+      // type indexing in fact begins at 0, not 1.
+      if (type != 0)
         {
-        case '\n':
-          col = 0;
-          row++;
-          break;
-        case ' ':
-          col++;
-          break;
-        default:
-          // Assume we have a number
-          int type = *c - '0';
-
+          type--;
+          // Create the brick
           int x = col * col_width;
           int y = row * row_height;
-
           bricks.push_back(game_brick(x, y, type, 1));
-
-          col++;
         }
+
+      col++;
     }
   
   file.close();
 
-  std::cout << "LÄNGD" << bricks.size() << "\n";
+  std::cout << "Number of bricks on level: " << bricks.size() << "\n";
 
   return bricks;
 }

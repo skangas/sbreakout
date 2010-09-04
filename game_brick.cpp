@@ -44,13 +44,3 @@ game_brick::in_play() const
 {
   return life > 0;
 }
-
-// void
-// game_brick::collision::handle_event(const event& e)
-// {
-//   if (e.type == E_BRICK_HIT)
-//     {
-//       brick = e.data;
-//       e.data->hit();
-//     }
-// }
