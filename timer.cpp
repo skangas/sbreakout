@@ -17,7 +17,7 @@ timer::get_ticks()
 }
 
 bool
-timer::is_running()
+timer::is_running() const
 {
   return running;
 }

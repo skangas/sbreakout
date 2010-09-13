@@ -12,10 +12,9 @@ public:
   timer();
 
   Uint32 get_ticks();
-  bool is_running();
+  bool is_running() const;
   void start();
   void toggle_start_pause();
-
 
 private:
   Uint32 start_time;
