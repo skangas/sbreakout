@@ -68,12 +68,16 @@ game::run()
   Uint32 start = SDL_GetTicks();
   clock.start();
   running = true;
+  timer frame_clock;
   while (running)
     {
-      maybe_next_level();
+      frame_clock.start();
+      frame++;
 
-      int frame_start = SDL_GetTicks();
       int ticks = clock.get_ticks();
+
+      // Change to next level if needed
+      maybe_next_level();
 
       // Clear surfaces
       SDL_FillRect(screen, NULL, 0);
@@ -101,16 +105,9 @@ game::run()
       status_loc.y += 35;
       SDL_BlitSurface(status, NULL, screen, &status_loc);
 
-      // Limit the frame rate to FRAME_PER_SECOND
-      frame++;
-      int frame_ticks = SDL_GetTicks() - frame_start;
-      if (frame_ticks < 1000 / FRAMES_PER_SECOND)
-        SDL_Delay((1000/FRAMES_PER_SECOND) - frame_ticks);
-
       // Show FPS counter
       SDL_Surface* fps_surface;
-
-      int fps = frame / float((frame_start - start) / 1000.0);
+      int fps = calculate_fps();
       sprintf(buffer, "%d FPS", fps);
       fps_surface = TTF_RenderText_Solid(fps_font, buffer, fps_color);
       SDL_Rect fps_loc = { SCREEN_WIDTH - 50, 5, 100, 100 };
@@ -124,6 +121,11 @@ game::run()
       SDL_BlitSurface(game_area, NULL, screen, &target);
 
       SDL_Flip(screen);
+
+      // Limit the frame rate to FRAME_PER_SECOND
+      Uint32 frame_time = frame_clock.get_ticks();
+      if (frame_time < 1000 / FRAMES_PER_SECOND)
+        SDL_Delay((1000/FRAMES_PER_SECOND) - frame_time);
     }
 }
 
@@ -136,6 +138,16 @@ game::quit()
 } 
 
 // private methods
+
+int game::calculate_fps()
+{
+  static int fps = 0;
+	static float last = 0.0f;
+	float now = SDL_GetTicks();
+	fps = fps*0.9 + (100.0f/(now - last));
+	last = now;
+  return fps;
+}
 
 int
 game::show_big_message(int ticks)

@@ -23,6 +23,7 @@ public:
   bool quit();
   
 private:
+  int calculate_fps();
   int show_big_message(int ticks);
   void handle_input_events();
   void maybe_next_level();
