@@ -259,7 +259,7 @@ game::maybe_next_level()
 
       // Load level
       char buffer[1024];
-      sprintf(buffer, "level%03d.txt", level);
+      sprintf(buffer, "data/levels/level%03d.txt", level);
       board.set_level(loader.load_level(buffer));
 
       // Give a message
