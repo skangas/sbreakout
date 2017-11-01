@@ -129,6 +129,58 @@ game::run()
     }
 }
 
+int
+game::title_screen()
+{
+  char buffer[1024];
+  assert(screen != NULL);
+
+  SDL_ShowCursor(SDL_ENABLE);
+
+  // Prepare background
+  SDL_Surface *background = NULL;
+  background = load_image("titlescreen-1024.png");
+
+  // Prepare text
+  TTF_Font* title_font = TTF_OpenFont("fonts/LiberationSerif-Bold.ttf", 30);
+  TTF_Font* font = TTF_OpenFont("fonts/LiberationSerif-Bold.ttf", 24);
+
+  while (true)
+    {
+      SDL_FillRect(screen, NULL, 0);
+      SDL_FillRect(game_area, NULL, 0);
+
+      // Blit background
+      SDL_BlitSurface(background, NULL, screen, NULL);
+      SDL_Flip(screen);
+
+      highlight_button(NEW_GAME_X, NEW_GAME_Y, NEW_GAME_W, NEW_GAME_H);
+      // draw_button("Foo", x, y);
+
+      SDL_Event event;
+
+      while (SDL_PollEvent(&event))
+        {
+          switch (event.type)
+            {
+            case SDL_KEYDOWN:
+              switch (event.key.keysym.sym)
+                {
+                case SDLK_ESCAPE:
+                  return -1;
+                }
+              break;
+            case SDL_MOUSEBUTTONDOWN:
+              if (event.button.button == SDL_BUTTON_LEFT)
+                board.handle_event_mouse_left();
+              break;
+            case SDL_QUIT:
+              return -1;
+            }
+        }
+    }
+}
+
 bool
 game::quit()
 {
@@ -281,4 +333,22 @@ game::set_big_message(int ticks, std::string format, ...)
   va_end(args);
 
   big_message = buffer;
+}
+
+void
+game::highlight_button(int x, int y, int w, int h)
+{
+  SDL_Renderer* renderer = NULL;
+
+  renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED);
+
+  SDL_SetRenderDrawColor(renderer, 0, 255, 0, 0);
+
+  SDL_Rect r = { NEW_GAME_X, NEW_GAME_Y, NEW_GAME_W, NEW_GAME_H };
+
+  SDL_RenderDrawRect(renderer, &r);
+
+  SDL_RenderPresent(renderer);
+
+  return;
 }

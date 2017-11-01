@@ -7,7 +7,13 @@ int main(int argc, char* args[])
   if (g.init() == false)
     return 1;
 
-  g.run();
+  int choice = g.title_screen();
+  switch (choice)
+    {
+    case 1:
+      g.run();
+      break;
+    }
 
   if (g.quit() == false)
     return 1;
