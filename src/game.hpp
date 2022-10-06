@@ -5,7 +5,7 @@
 
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
-#include "SDL/SDL_ttf.h"
+#include <SDL/SDL_ttf.h>
 
 #include "game_board.hpp"
 #include "game_rules.hpp"
@@ -21,15 +21,15 @@ public:
   bool init();
   void run();
   bool quit();
-  int title_screen();
-  
+  // int title_screen();
+
 private:
   int calculate_fps();
   int show_big_message(int ticks);
   void handle_input_events();
   void maybe_next_level();
   void set_big_message(int ticks, std::string fmt, ...);
-  void highlight_button(int x, int y, int w, int h);
+  // void highlight_button(int x, int y, int w, int h);
 
   int level;
   bool running;
@@ -55,11 +55,11 @@ private:
   static const int GAME_AREA_W = SCREEN_WIDTH * 0.8;
   static const int GAME_AREA_H = SCREEN_HEIGHT * 0.9;
 
-  static const int NEW_GAME_X = 500;
-  static const int NEW_GAME_Y = 500;
-  static const int NEW_GAME_H = 100;
-  static const int NEW_GAME_W = 100;
-  
+  // static const int NEW_GAME_X = 500;
+  // static const int NEW_GAME_Y = 500;
+  // static const int NEW_GAME_H = 100;
+  // static const int NEW_GAME_W = 100;
+
   SDL_Surface* screen;
   SDL_Surface* game_area;
   SDL_Surface* status;
