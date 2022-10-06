@@ -94,7 +94,8 @@ game_board::handle_brick_collision(game_ball& ball, int new_x, int new_y)
       if (!collision)
         continue;
   
-      // Keep this brick unless we have already seen a brick that was closer to the ball
+      // Keep this brick unless we have already seen a brick that was closer
+      // to the ball
       int dist = distance(new_x, new_y, coll_x, coll_y);
       if (closest_brick == NULL || dist < closest_distance)
         {

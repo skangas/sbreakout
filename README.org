@@ -1,0 +1,33 @@
+#+TITLE:  Stefan's Breakout
+#+DATE:   2022-10-05
+#+AUTHOR: Stefan Kangas
+#+STARTUP: content hidestars indent
+#+OPTIONS: toc:nil num:1 email:nil
+
+This is a small Breakout clone written in C++ using SDL.
+
+I wrote this many years ago, and it's probably not useful as more than an
+exercise, but I figured I might as well archive it here.
+
+[[screenshot.png]]
+
+To build this, you probably need to install these prerequisites (on Debian GNU/Linux):
+
+#+begin_quote
+sudo apt install libsdl1.2-dev libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
+#+end_quote
+
+Then simply type:
+
+#+begin_quote
+make
+#+end_quote
+
+Information on the copyright and license for the graphics in [[graphics/README]] and
+for the music in [[music/README]].  The photo ~background.jpg~ is in the public
+domain (photo by [[https://gpm.nasa.gov/image-use-policy][NASA]]).
+
+I wrote this for fun, but pull requests are welcome.  I probably won't be fixing
+any bugs though.
+
+Happy hacking!
